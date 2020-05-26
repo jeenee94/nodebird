@@ -153,6 +153,17 @@ textarea {
   font-size: 12px;
   cursor: pointer;
 }
+.twit-like,
+.twit-unlike {
+  color: red;
+  margin-top: 5px;
+  cursor: pointer;
+}
+.twit-cnt {
+  display: inline-block;
+  margin: 0px 5px;
+  font-size: 15px;
+}
 .twit-img {
   text-align: center;
 }

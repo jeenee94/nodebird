@@ -27,12 +27,13 @@ router.post('/img', isLoggedIn, upload.single('img'), (req, res) => {
 const upload2 = multer();
 router.post('/', isLoggedIn, upload2.none(), async (req, res, next) => {
   try {
+    const new_content = req.body.content.replace(/#[^#\s,;]+/gm, '');
+    const hashtags = req.body.content.match(/#[^#\s,;]+/gm);
     const post = await Post.create({
-      content: req.body.content,
+      content: new_content,
       img: req.body.url,
       userId: req.user.id,
     });
-    const hashtags = req.body.content.match(/#[^\s]*/g);
     if (hashtags) {
       const result = await Promise.all(
         hashtags.map((tag) =>
@@ -59,13 +60,59 @@ router.get('/hashtag', async (req, res, next) => {
     const hashtag = await Hashtag.findOne({ where: { title: query } });
     let posts = [];
     if (hashtag) {
-      posts = await hashtag.getPosts({ include: [{ model: User }] });
+      posts = await hashtag.getPosts({
+        include: [
+          {
+            // 작성자
+            model: User,
+            attributes: ['id', 'nick'],
+          },
+          {
+            // 좋아요를 누른 사람
+            model: User,
+            attributes: ['id', 'nick'],
+            as: 'Likers',
+          },
+          {
+            // 해시태그
+            model: Hashtag,
+            attributes: ['id', 'title'],
+            as: 'Hashtags',
+          },
+        ],
+      });
     }
     return res.render('main', {
       title: `${query} | NodeBird`,
       user: req.user,
       twits: posts,
     });
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+// 좋아요
+router.post('/:id/like', async (req, res, next) => {
+  try {
+    const post = await Post.findOne({ where: { id: req.params.id } });
+    await Post.update({ cnt: post.dataValues.cnt + 1 }, { where: { id: req.params.id } });
+    post.addLikers(req.user.id);
+    res.send('OK');
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+// 좋아요 취소
+router.delete('/:id/like', async (req, res, next) => {
+  try {
+    const post = await Post.findOne({ where: { id: req.params.id } });
+    await Post.update({ cnt: post.dataValues.cnt - 1 }, { where: { id: req.params.id } });
+    post.removeLikers(req.user.id);
+    res.send('OK');
   } catch (error) {
     console.error(error);
     next(error);

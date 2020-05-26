@@ -12,3 +12,7 @@ block content
       if user.Followers
         for follower in user.Followers
           div= follower.nick
+  form#profile-form(action="/user/profile", method="post")
+    h4 변경할 닉네임
+    input(name='nick')
+    button 수정
