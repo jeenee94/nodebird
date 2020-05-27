@@ -28,15 +28,18 @@ block content
             button.twit-follow 팔로우
           if user && user.id != twit.user.id && follow
             button.twit-unfollow 언팔로우
-          
+          if (user && user.id === twit.user.id)
+            .twit-delete.i.fas.fa-times
           .twit-content= twit.content
           if twit.img
             .twit-img
               img(src=twit.img alt='섬네일')
           .twit-hashtags
+            |#
             each hashtag in twit.Hashtags
               -const title = hashtag.title
               a(href="/post/hashtag?hashtag="+title)= hashtag.title
+              | 
           -const like = user && twit && twit.Likers.map(l => l.id).includes(user.id);
           if user && !like
             .twit-like.i.far.fa-heart
@@ -105,6 +108,30 @@ block content
                 }
               };
               xhr.open('POST', '/user/' + userId + '/unfollow');
+              xhr.send();
+            }
+          }
+        }
+      });
+    });
+    document.querySelectorAll('.twit-delete').forEach(function (tag) {
+      tag.addEventListener('click', function () {
+        var isLoggedIn = document.querySelector('#my-id');
+        if (isLoggedIn) {
+          var userId = tag.parentNode.querySelector('.twit-user-id').value;
+          var myId = isLoggedIn.value;
+          if (userId === myId) {
+            if (confirm('정말 삭제하시겠습니까?')) {
+              var twitId = tag.parentNode.querySelector('.twit-id').value;
+              var xhr = new XMLHttpRequest();
+              xhr.onload = function () {
+                if (xhr.status === 200) {
+                  location.reload();
+                } else {
+                  console.error(xhr.responseText);
+                }
+              };
+              xhr.open('DELETE', '/post/' + twitId);
               xhr.send();
             }
           }

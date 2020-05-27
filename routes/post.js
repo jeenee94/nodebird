@@ -93,6 +93,17 @@ router.get('/hashtag', async (req, res, next) => {
   }
 });
 
+// 게시물 삭제
+router.delete('/:id', async (req, res, next) => {
+  try {
+    await Post.destroy({ where: { id: req.params.id, userId: req.user.id } });
+    res.send('OK');
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
 // 좋아요
 router.post('/:id/like', async (req, res, next) => {
   try {
