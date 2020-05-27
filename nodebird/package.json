@@ -1,6 +1,6 @@
 {
   "name": "nodebird",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "twitter clone coding",
   "main": "app.js",
   "scripts": {
