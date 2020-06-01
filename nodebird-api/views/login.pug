@@ -22,18 +22,20 @@ html
             input#type-premium(type='radio' name='type' value='premium')
           div
             label(for='host') 도메인
-            input#host(name='host' placeholder="ex) zerocho.com")
+            input#host(name='host' placeholder="ex) http://localhost:8003")
           button 저장
       table
         tr
           th 도메인 주소
           th 타입
           th 클라이언트 비밀키
+          th 프론트 비밀키
         for domain in user.domains
           tr
             td= domain.host
             td= domain.type
             td= domain.clientSecret
+            td= domain.frontSecret
 
     else
       form#login-form(action='/auth/login' method='post')

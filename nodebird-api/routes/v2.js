@@ -1,18 +1,40 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
+const url = require('url');
 
-const { verifyToken, deprecated } = require('./middlewares');
+const { verifyToken, apiLimiter, premiumApiLimiter } = require('./middlewares');
 const { Domain, User, Post, Hashtag } = require('../models');
 
 const router = express.Router();
 
-router.use(deprecated);
+router.use(async (req, res, next) => {
+  const domain = await Domain.findOne({
+    where: { host: url.parse(req.get('origin')).host },
+  });
+  if (domain) {
+    cors({ origin: req.get('origin') })(req, res, next);
+  } else {
+    next();
+  }
+});
+
+router.use(async (req, res, next) => {
+  const domain = await Domain.findOne({
+    where: { host: url.parse(req.get('origin')).host },
+  });
+  if (domain.type === 'premium') {
+    premiumApiLimiter(req, res, next);
+  } else {
+    apiLimiter(req, res, next);
+  }
+});
 
 router.post('/token', async (req, res, next) => {
   const { clientSecret } = req.body;
   try {
     const domain = await Domain.findOne({
-      where: { clientSecret },
+      where: { frontSecret: clientSecret },
       include: {
         model: User,
         attributes: ['nick', 'id'],
